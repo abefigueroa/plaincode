@@ -2,6 +2,21 @@
 
 
 # Functions
+def collect_multiline_input() -> str:
+    """Collect lines until the user enters END."""
+    lines: list[str] = []
+
+    while True:
+        line = input()
+
+        if line.lower() == 'end':
+            break
+        
+        lines.append(line)
+
+    return "\n".join(lines)
+
+        
 
 
 def main() -> None:
