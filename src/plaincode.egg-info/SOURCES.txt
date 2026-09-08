@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+src/plaincode/__init__.py
+src/plaincode/__main__.py
+src/plaincode.egg-info/PKG-INFO
+src/plaincode.egg-info/SOURCES.txt
+src/plaincode.egg-info/dependency_links.txt
+src/plaincode.egg-info/entry_points.txt
+src/plaincode.egg-info/top_level.txt

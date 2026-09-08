@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "plaincode"
+version = "0.1.0"
+description = "Translate programming code into plain English and plain English into code."
+requires-python = ">=3.14"
+
+[project.scripts]
+plaincode = "plaincode.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
