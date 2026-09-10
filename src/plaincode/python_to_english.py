@@ -24,10 +24,38 @@ def translate_function_definition(statement: ast.FunctionDef) -> str:
 
         parameter_text = ", ".join(parameters)
 
-        return (
+        header = (
             f"Define a function named {statement.name} "
             f"that accepts the parameter {parameter_text}."
         )
+
+        translations: list[str] = [header]
+
+        for nested_statement in statement.body:
+            nested_translation = translate_statement(nested_statement)
+            translations.append(f"    {nested_translation}")
+
+        return "\n".join(translations)
+
+
+def translate_statement(statement: ast.stmt) -> str:
+    """Translate one Python statement into plain English."""
+    if isinstance(statement, ast.Assign):
+        return translate_assignment(statement)
+
+    if isinstance(statement, ast.FunctionDef):
+        return translate_function_definition(statement)
+
+    if isinstance(statement, ast.Expr):
+        call = statement.value
+
+        if isinstance(call, ast.Call):
+            function = call.func
+
+            if isinstance(function, ast.Name) and function.id == "print":
+                return translate_print_call(call)
+
+    return "Unsupported statement."
 
 
 def translate_python(python_code: str) -> str:
@@ -36,20 +64,7 @@ def translate_python(python_code: str) -> str:
     translations: list[str] = []
 
     for statement in tree.body:
-        if isinstance(statement, ast.Assign):
-            translation = translate_assignment(statement)
-            translations.append(translation)
-        elif isinstance(statement, ast.FunctionDef):
-            translation = translate_function_definition(statement)
-            translations.append(translation)
-        elif isinstance(statement, ast.Expr):
-            call = statement.value
-
-            if isinstance(call, ast.Call):
-                function = call.func
-
-                if isinstance(function, ast.Name) and function.id == "print":
-                    translation = translate_print_call(call)
-                    translations.append(translation)
+        translation = translate_statement(statement)
+        translations.append(translation)
 
     return "\n".join(translations)
