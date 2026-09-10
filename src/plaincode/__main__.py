@@ -28,9 +28,13 @@ def main() -> None:
 
     choice = input("Choose an option: ")
     if choice == "1":
-        print("Python to plain English selected.")
+        print("Enter Python code and type END when finished")
+        python_code = collect_multiline_input()
+        print(python_code)
     elif choice == "2":
-        print("Plain English to Python selected.")
+        print("Enter plain English and type END when finished.")
+        plain_english = collect_multiline_input()
+        print(plain_english)
     elif choice == "3":
         print("Goodbye!")
     else:
