@@ -1,4 +1,5 @@
 """Application entry point and workflow."""
+from .python_to_english import translate_python
 
 
 # Functions
@@ -30,7 +31,8 @@ def main() -> None:
     if choice == "1":
         print("Enter Python code and type END when finished")
         python_code = collect_multiline_input()
-        print(python_code)
+        translation = translate_python(python_code)
+        print(translation)
     elif choice == "2":
         print("Enter plain English and type END when finished.")
         plain_english = collect_multiline_input()
