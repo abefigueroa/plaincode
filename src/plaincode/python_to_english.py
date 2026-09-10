@@ -10,6 +10,12 @@ def translate_assignment(statement: ast.Assign) -> str:
     return f"Set {target} equal to {value}."
 
 
+def translate_print_call(call: ast.Call) -> str:
+    """Translate a Python print call into plain English."""
+    argument = ast.unparse(call.args[0])
+    return f"Print {argument}"
+
+
 def translate_python(python_code: str) -> str:
     """Translate Python source code into plain English."""
     tree = ast.parse(python_code)
@@ -19,5 +25,14 @@ def translate_python(python_code: str) -> str:
         if isinstance(statement, ast.Assign):
             translation = translate_assignment(statement)
             translations.append(translation)
+        elif isinstance(statement, ast.Expr):
+            call = statement.value
+
+            if isinstance(call, ast.Call):
+                function = call.func
+
+                if isinstance(function, ast.Name) and function.id == "print":
+                    translation = translate_print_call(call)
+                    translations.append(translation)
 
     return "\n".join(translations)
