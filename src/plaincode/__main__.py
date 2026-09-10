@@ -2,7 +2,6 @@
 from .python_to_english import translate_python
 
 
-# Functions
 def collect_multiline_input() -> str:
     """Collect lines until the user enters END."""
     lines: list[str] = []
@@ -18,8 +17,6 @@ def collect_multiline_input() -> str:
     return "\n".join(lines)
 
         
-
-
 def main() -> None:
     """Run the PlainCode terminal application."""
     print("PlainCode")
