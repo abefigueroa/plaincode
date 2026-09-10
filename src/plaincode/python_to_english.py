@@ -16,6 +16,20 @@ def translate_print_call(call: ast.Call) -> str:
     return f"Print {argument}"
 
 
+def translate_function_definition(statement: ast.FunctionDef) -> str:
+    parameters: list[str] = []
+
+    for argument in statement.args.args:
+        parameters.append(argument.arg)
+
+        parameter_text = ", ".join(parameters)
+
+        return (
+            f"Define a function named {statement.name} "
+            f"that accepts the parameter {parameter_text}."
+        )
+
+
 def translate_python(python_code: str) -> str:
     """Translate Python source code into plain English."""
     tree = ast.parse(python_code)
@@ -24,6 +38,9 @@ def translate_python(python_code: str) -> str:
     for statement in tree.body:
         if isinstance(statement, ast.Assign):
             translation = translate_assignment(statement)
+            translations.append(translation)
+        elif isinstance(statement, ast.FunctionDef):
+            translation = translate_function_definition(statement)
             translations.append(translation)
         elif isinstance(statement, ast.Expr):
             call = statement.value
