@@ -1,5 +1,0 @@
-Metadata-Version: 2.4
-Name: plaincode
-Version: 0.1.0
-Summary: Translate programming code into plain English and plain English into code.
-Requires-Python: >=3.14
