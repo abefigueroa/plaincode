@@ -13,7 +13,7 @@ def translate_assignment(statement: ast.Assign) -> str:
 def translate_print_call(call: ast.Call) -> str:
     """Translate a Python print call into plain English."""
     argument = ast.unparse(call.args[0])
-    return f"Print {argument}"
+    return f"Print {argument}."
 
 
 def translate_function_definition(statement: ast.FunctionDef) -> str:
@@ -76,6 +76,16 @@ def translate_comparison(comparison: ast.Compare) -> str:
 
     if isinstance(operator, ast.Gt):
         return f"{left} is greater than {right}"
+    if isinstance(operator, ast.Lt):
+        return f"{left} is less than {right}"
+    if isinstance(operator, ast.GtE):
+        return f"{left} is greater than or equal to {right}"
+    if isinstance(operator, ast.LtE):
+        return f"{left} is less than or equal to {right}"
+    if isinstance(operator, ast.Eq):
+        return f"{left} is equal to {right}"
+    if isinstance(operator, ast.NotEq):
+        return f"{left} is not equal to {right}"
     
     return "Unsupported comparison"
 
