@@ -3,16 +3,39 @@
 import ast
 
 
+def translate_expression(expression: ast.expr) -> str:
+    """Translate a Python expression into plain English."""
+    if isinstance(expression, ast.BinOp):
+        left = translate_expression(expression.left)
+        right = translate_expression(expression.right)
+
+        if isinstance(expression.op, ast.Add):
+            return f"{left} plus {right}"
+        if isinstance(expression.op, ast.Sub):
+            return f"{left} minus {right}"
+        if isinstance(expression.op, ast.Mult):
+            return f"{left} multiplied by {right}"
+        if isinstance(expression.op, ast.Div):
+            return f"{left} divided by {right}"
+        if isinstance(expression.op, ast.FloorDiv):
+            return f"{left} floor divided by {right}"
+        if isinstance(expression.op, ast.Mod):
+            return f"{left} modulo {right}"
+        if isinstance(expression.op, ast.Pow):
+            return f"{left} raised to the power of {right}"
+
+    return ast.unparse(expression)
+
 def translate_assignment(statement: ast.Assign) -> str:
     """Translate a Python assignment into plain English."""
     target = ast.unparse(statement.targets[0])
-    value = ast.unparse(statement.value)
+    value = translate_expression(statement.value)
     return f"Set {target} equal to {value}."
 
 
 def translate_print_call(call: ast.Call) -> str:
     """Translate a Python print call into plain English."""
-    argument = ast.unparse(call.args[0])
+    argument = translate_expression(call.args[0])
     return f"Print {argument}."
 
 
@@ -82,9 +105,9 @@ def indent_translation(translation: str) -> str:
 
 
 def translate_comparison(comparison: ast.Compare) -> str:
-    left = ast.unparse(comparison.left)
+    left = translate_expression(comparison.left)
     operator = comparison.ops[0]
-    right = ast.unparse(comparison.comparators[0])
+    right = translate_expression(comparison.comparators[0])
 
     if isinstance(operator, ast.Gt):
         return f"{left} is greater than {right}"
@@ -134,7 +157,7 @@ def translate_return_statement(statement: ast.Return) -> str:
     """Translate a Python return statement into plain English."""
     if statement.value is None:
         return "Return."
-    value = ast.unparse(statement.value)
+    value = translate_expression(statement.value)
     return f"Return {value}."
 
 
