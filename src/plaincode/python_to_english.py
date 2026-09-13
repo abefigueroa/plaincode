@@ -58,6 +58,9 @@ def translate_statement(statement: ast.stmt) -> str:
     if isinstance(statement, ast.If):
         return translate_if_statement(statement)
 
+    if isinstance(statement, ast.Return):
+        return translate_return_statement(statement)
+
     if isinstance(statement, ast.Expr):
         call = statement.value
 
@@ -126,6 +129,13 @@ def translate_if_statement(statement: ast.If) -> str:
 
     return "\n".join(translations)
 
+
+def translate_return_statement(statement: ast.Return) -> str:
+    """Translate a Python return statement into plain English."""
+    if statement.value is None:
+        return "Return."
+    value = ast.unparse(statement.value)
+    return f"Return {value}."
 
 
 def translate_python(python_code: str) -> str:
