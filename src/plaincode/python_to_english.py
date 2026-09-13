@@ -17,25 +17,34 @@ def translate_print_call(call: ast.Call) -> str:
 
 
 def translate_function_definition(statement: ast.FunctionDef) -> str:
+    """Translate a Python or Python function definition into plain English."""
     parameters: list[str] = []
 
     for argument in statement.args.args:
         parameters.append(argument.arg)
 
-        parameter_text = ", ".join(parameters)
-
-        header = (
-            f"Define a function named {statement.name} "
-            f"that accepts the parameter {parameter_text}."
+    if not parameters:
+        parameter_description = "no parameters"
+    elif len(parameters) == 1:
+        parameter_description = f"the parameter {parameters[0]}"
+    else:
+        leading_parameters = ", ".join(parameters[:-1])
+        parameter_description = (
+            f"the parameters {leading_parameters} and {parameters[-1]}"
         )
 
-        translations: list[str] = [header]
+    header = (
+        f"Define a function named {statement.name} "
+        f"that accepts {parameter_description}."
+    )
 
-        for nested_statement in statement.body:
-            nested_translation = translate_statement(nested_statement)
-            translations.append(indent_translation(nested_translation))
+    translations: list[str] = [header]
 
-        return "\n".join(translations)
+    for nested_statement in statement.body:
+        nested_translation = translate_statement(nested_statement)
+        translations.append(indent_translation(nested_translation))
+
+    return "\n".join(translations)
 
 
 def translate_statement(statement: ast.stmt) -> str:
