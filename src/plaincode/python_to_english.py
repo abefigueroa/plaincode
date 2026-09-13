@@ -102,6 +102,12 @@ def translate_if_statement(statement: ast.If) -> str:
         nested_translation = translate_statement(nested_statement)
         translations.append(indent_translation(nested_translation))
 
+    if statement.orelse:
+        translations.append("Else:")
+        for nested_statement in statement.orelse:
+            nested_translation = translate_statement(nested_statement)
+            translations.append(indent_translation(nested_translation))
+
     return "\n".join(translations)
 
 
