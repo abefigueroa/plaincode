@@ -70,6 +70,19 @@ def translate_function_definition(statement: ast.FunctionDef) -> str:
     return "\n".join(translations)
 
 
+def translate_for_statement(statement: ast.For) -> str:
+    """Translate a Python for loop into plain English."""
+    target = ast.unparse(statement.target)
+    iterable = translate_expression(statement.iter)
+    translations: list[str] = [f"For each {target} in {iterable}:"]
+
+    for nested_statement in statement.body:
+        nested_translation = translate_statement(nested_statement)
+        translations.append(indent_translation(nested_translation))
+
+    return "\n".join(translations)
+        
+
 def translate_statement(statement: ast.stmt) -> str:
     """Translate one Python statement into plain English."""
     if isinstance(statement, ast.Assign):
@@ -80,6 +93,9 @@ def translate_statement(statement: ast.stmt) -> str:
 
     if isinstance(statement, ast.If):
         return translate_if_statement(statement)
+
+    if isinstance(statement, ast.For):
+        return translate_for_statement(statement)
 
     if isinstance(statement, ast.Return):
         return translate_return_statement(statement)
