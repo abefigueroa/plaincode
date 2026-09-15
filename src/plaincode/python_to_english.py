@@ -81,6 +81,21 @@ def translate_for_statement(statement: ast.For) -> str:
         translations.append(indent_translation(nested_translation))
 
     return "\n".join(translations)
+
+
+def translate_while_statement(statement: ast.While) -> str:
+    """Translate a Python while loop into plain English."""
+    if not isinstance(statement.test, ast.Compare):
+        return "Unsupported while condition."
+
+    condition = translate_comparison(statement.test)
+    translations: list[str] = [f"While {condition}:"]
+
+    for nested_statement in statement.body:
+        nested_translation = translate_statement(nested_statement)
+        translations.append(indent_translation(nested_translation))
+
+    return "\n".join(translations)
         
 
 def translate_statement(statement: ast.stmt) -> str:
@@ -96,6 +111,9 @@ def translate_statement(statement: ast.stmt) -> str:
 
     if isinstance(statement, ast.For):
         return translate_for_statement(statement)
+
+    if isinstance(statement, ast.While):
+        return translate_while_statement(statement)
 
     if isinstance(statement, ast.Return):
         return translate_return_statement(statement)
