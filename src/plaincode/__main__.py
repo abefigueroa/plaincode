@@ -28,8 +28,14 @@ def main() -> None:
     if choice == "1":
         print("Enter Python code and type END when finished")
         python_code = collect_multiline_input()
-        translation = translate_python(python_code)
-        print(translation)
+
+        try: 
+            print(translate_python(python_code))
+        except SyntaxError as error:
+            print(
+                f"Invalid Python syntax on line {error.lineno}: "
+                f"{error.msg}")
+            
     elif choice == "2":
         print("Enter plain English and type END when finished.")
         plain_english = collect_multiline_input()
