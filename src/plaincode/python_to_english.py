@@ -96,28 +96,47 @@ def translate_while_statement(statement: ast.While) -> str:
         translations.append(indent_translation(nested_translation))
 
     return "\n".join(translations)
+
+
+def translate_augmented_assignment(statement: ast.AugAssign) -> str:
+    """Translate a Python augmented assignment into plain English."""
+    target = ast.unparse(statement.target)
+    value = translate_expression(statement.value)
+
+    if isinstance(statement.op, ast.Add):
+        return f"Add {value} to {target}."
+    if isinstance(statement.op, ast.Sub):
+        return f"Subtract {value} from {target}."
+    if isinstance(statement.op, ast.Mult):
+        return f"Multiply {target} by {value}."
+    if isinstance(statement.op, ast.Div):
+        return f"Divide {target} by {value}."
+    if isinstance(statement.op, ast.FloorDiv):
+        return f"Floor divide {target} by {value}."
+    if isinstance(statement.op, ast.Mod):
+        return f"Set {target} to {target} modulo {value}."
+    if isinstance(statement.op, ast.Pow):
+        return f"Raise {target} to the power of {value}."
+
+    return "Unsupported augmented assignment."
         
 
 def translate_statement(statement: ast.stmt) -> str:
     """Translate one Python statement into plain English."""
     if isinstance(statement, ast.Assign):
         return translate_assignment(statement)
-
     if isinstance(statement, ast.FunctionDef):
         return translate_function_definition(statement)
-
     if isinstance(statement, ast.If):
         return translate_if_statement(statement)
-
     if isinstance(statement, ast.For):
         return translate_for_statement(statement)
-
     if isinstance(statement, ast.While):
         return translate_while_statement(statement)
-
+    if isinstance(statement, ast.AugAssign):
+        return translate_augmented_assignment(statement)
     if isinstance(statement, ast.Return):
         return translate_return_statement(statement)
-
     if isinstance(statement, ast.Expr):
         call = statement.value
 
