@@ -26,6 +26,30 @@ def translate_expression(expression: ast.expr) -> str:
 
     return ast.unparse(expression)
 
+
+def translate_function_call(call: ast.Call) -> str:
+    """Translate a Python function call into plain English."""
+    function_name = ast.unparse(call.func)
+
+    arguments: list[str] = []
+
+    for argument in call.args:
+        translated_argument = translate_expression(argument)
+        arguments.append(translated_argument)
+
+    if not arguments:
+        translation = f"Call {function_name}."
+    elif len(arguments) == 1:
+        translation = f"Call {function_name} with the argument {arguments[0]}."
+    else:
+        leading_arguments = ", ".join(arguments[:-1])
+        translation = (
+            f"Call {function_name} with the arguments {leading_arguments} and {arguments[-1]}."
+        )
+
+    return translation
+
+
 def translate_assignment(statement: ast.Assign) -> str:
     """Translate a Python assignment into plain English."""
     target = ast.unparse(statement.targets[0])
@@ -145,6 +169,8 @@ def translate_statement(statement: ast.stmt) -> str:
 
             if isinstance(function, ast.Name) and function.id == "print":
                 return translate_print_call(call)
+
+            return translate_function_call(call)
 
     return "Unsupported statement."
 
