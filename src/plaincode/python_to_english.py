@@ -23,6 +23,12 @@ def translate_expression(expression: ast.expr) -> str:
             return f"{left} modulo {right}"
         if isinstance(expression.op, ast.Pow):
             return f"{left} raised to the power of {right}"
+        
+    if isinstance(expression, ast.Call):
+        if isinstance(expression.func, ast.Name):
+            if expression.func.id == "len" and len(expression.args) == 1:
+                translated_argument = translate_expression(expression.args[0])
+                return f"the length of {translated_argument}"
 
     return ast.unparse(expression)
 
