@@ -36,6 +36,11 @@ def translate_expression(expression: ast.expr) -> str:
                 translated_argument = translate_expression(expression.args[0])
                 return f"the length of {translated_argument}"
 
+            if expression.func.id == "sorted":
+                if len(expression.args) == 1:
+                    translated_argument = translate_expression(expression.args[0])
+                    return f"a sorted copy of {translated_argument}"
+
     if isinstance(expression, ast.Subscript):
         collection = translate_expression(expression.value)
         index = translate_expression(expression.slice)
