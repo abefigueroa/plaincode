@@ -9,6 +9,12 @@ def translate_expression(expression: ast.expr) -> str:
         left = translate_expression(expression.left)
         right = translate_expression(expression.right)
 
+        if isinstance(expression.left, ast.BinOp):
+            left = f"({left})"
+
+        if isinstance(expression.right, ast.BinOp):
+            right = f"({right})"
+
         if isinstance(expression.op, ast.Add):
             return f"{left} plus {right}"
         if isinstance(expression.op, ast.Sub):
@@ -29,6 +35,11 @@ def translate_expression(expression: ast.expr) -> str:
             if expression.func.id == "len" and len(expression.args) == 1:
                 translated_argument = translate_expression(expression.args[0])
                 return f"the length of {translated_argument}"
+
+    if isinstance(expression, ast.Subscript):
+        collection = translate_expression(expression.value)
+        index = translate_expression(expression.slice)
+        return f"the item in {collection} at index ({index})"
 
     return ast.unparse(expression)
 
