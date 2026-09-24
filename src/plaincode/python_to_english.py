@@ -51,6 +51,12 @@ def translate_expression(expression: ast.expr) -> str:
 
 def translate_function_call(call: ast.Call) -> str:
     """Translate a Python function call into plain English."""
+    if isinstance(call.func, ast.Attribute):
+        if call.func.attr == "sort":
+            if not call.args and not call.keywords:
+                collection = translate_expression(call.func.value)
+                return f"Sort {collection} in place."
+
     function_name = ast.unparse(call.func)
 
     arguments: list[str] = []

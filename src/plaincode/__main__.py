@@ -20,8 +20,8 @@ def collect_multiline_input() -> str:
 def main() -> None:
     """Run the PlainCode terminal application."""
     print("PlainCode")
-    print("1. Python to plain English")
-    print("2. Plain English to Python")
+    print("1. Python to English")
+    print("2. English to Python")
     print("3. Exit")
 
     choice = input("Choose an option: ")
