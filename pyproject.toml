@@ -7,6 +7,9 @@ name = "plaincode"
 version = "0.1.0"
 description = "Translate programming code into plain English and plain English into code."
 requires-python = ">=3.14"
+dependencies = [
+    "Pygments>=2.18",
+]
 
 [project.scripts]
 plaincode = "plaincode.__main__:main"
