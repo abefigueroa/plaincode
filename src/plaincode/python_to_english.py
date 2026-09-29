@@ -29,6 +29,30 @@ def translate_expression(expression: ast.expr) -> str:
             return f"{left} modulo {right}"
         if isinstance(expression.op, ast.Pow):
             return f"{left} raised to the power of {right}"
+
+    if isinstance(expression, ast.Lambda):
+        parameters = [
+            argument.arg
+            for argument in expression.args.args
+        ]
+
+        if len(parameters) == 1:
+            parameter_description = parameters[0]
+        else:
+            parameter_description = ", ".join(parameters)
+
+        if isinstance(
+            expression.body,
+            (ast.Compare, ast.BoolOp, ast.Call),
+        ):
+            body = translate_condition(expression.body)
+        else:
+            body = translate_expression(expression.body)
+
+        return (
+            f"a lambda that accepts {parameter_description} "
+            f"and returns {body}"
+        )
         
     if isinstance(expression, ast.Call):
         if isinstance(expression.func, ast.Name):
@@ -46,6 +70,24 @@ def translate_expression(expression: ast.expr) -> str:
                     function = translate_expression(expression.args[0])
                     iterable = translate_expression(expression.args[1])
                     return f"map {function} over {iterable}"
+
+            if expression.func.id == "filter":
+                if len(expression.args) == 2:
+                    function = translate_expression(
+                        expression.args[0]
+                    )
+                    iterable = translate_expression(
+                        expression.args[1]
+                    )
+
+                    return f"filter {iterable} using {function}"
+
+            if expression.func.id == "list":
+                if len(expression.args) == 1:
+                    iterable = translate_expression(
+                        expression.args[0]
+                    )
+                    return f"a list made from {iterable}"
 
         if isinstance(expression.func, ast.Attribute):
             if expression.func.attr == "split":
