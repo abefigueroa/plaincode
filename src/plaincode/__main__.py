@@ -9,6 +9,7 @@ from plaincode.python_transform import (
     break_apart_python,
     combine_python,
 )
+from plaincode.python_explainer import explain_python
 
 
 def collect_multiline_input() -> tuple[str, str]:
@@ -18,6 +19,14 @@ def collect_multiline_input() -> tuple[str, str]:
     while True:
         line = input()
         command = line.upper()
+
+        if command == "HELP":
+            print("Available commands:")
+            print("END = translate")
+            print("EXPLAIN = explain what the code does")
+            print("BREAK_APART = expand nested code")
+            print("COMBINE = combine intermediate steps")
+            continue
 
         if command in {
             "END",
@@ -40,11 +49,7 @@ def main() -> None:
     choice = input("Choose an option: ")
 
     if choice == "1":
-        print(
-            "Enter Python code.\n"
-            "END = translate\n"
-            "BREAK_APART = expand nested code"
-        )
+        print("Enter Python code. Type HELP for commands.")
 
         python_code, command = collect_multiline_input()
 
@@ -56,7 +61,7 @@ def main() -> None:
                 print(break_apart_python(python_code))
 
             elif command == "EXPLAIN":
-                print("EXPLAIN is not implemented yet.")
+                print(explain_python(python_code))
 
             elif command == "COMBINE":
                 print(combine_python(python_code))
