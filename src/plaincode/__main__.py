@@ -1,26 +1,33 @@
 """Application entry point and workflow."""
 from .python_to_english import translate_python
-
 from plaincode.english_to_python import (
     UnsupportedEnglishError,
     guess_statement,
     translate_english,
 )
+from plaincode.python_transform import (
+    break_apart_python,
+    combine_python,
+)
 
 
-def collect_multiline_input() -> str:
-    """Collect lines until the user enters END."""
+def collect_multiline_input() -> tuple[str, str]:
+    """Collect multiline input until a PlainCode command is entered."""
     lines: list[str] = []
 
     while True:
         line = input()
+        command = line.upper()
 
-        if line.lower() == 'end':
-            break
-        
+        if command in {
+            "END",
+            "EXPLAIN",
+            "BREAK_APART",
+            "COMBINE",
+        }:
+            return "\n".join(lines), command
+
         lines.append(line)
-
-    return "\n".join(lines)
 
         
 def main() -> None:
@@ -33,11 +40,27 @@ def main() -> None:
     choice = input("Choose an option: ")
 
     if choice == "1":
-        print("Enter Python code and type END when finished")
-        python_code = collect_multiline_input()
+        print(
+            "Enter Python code.\n"
+            "END = translate\n"
+            "BREAK_APART = expand nested code"
+        )
+
+        python_code, command = collect_multiline_input()
 
         try:
-            print(translate_python(python_code))
+            if command == "END":
+                print(translate_python(python_code))
+
+            elif command == "BREAK_APART":
+                print(break_apart_python(python_code))
+
+            elif command == "EXPLAIN":
+                print("EXPLAIN is not implemented yet.")
+
+            elif command == "COMBINE":
+                print(combine_python(python_code))
+
         except SyntaxError as error:
             print(
                 f"Invalid Python syntax on line {error.lineno}: "
@@ -46,7 +69,7 @@ def main() -> None:
 
     elif choice == "2":
         print("Enter plain English and type END when finished.")
-        plain_english = collect_multiline_input()
+        plain_english, command = collect_multiline_input()
 
         translations: list[str] = []
 
