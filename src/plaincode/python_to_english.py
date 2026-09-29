@@ -41,8 +41,35 @@ def translate_expression(expression: ast.expr) -> str:
                     translated_argument = translate_expression(expression.args[0])
                     return f"a sorted copy of {translated_argument}"
 
+            if expression.func.id == "map":
+                if len(expression.args) == 2:
+                    function = translate_expression(expression.args[0])
+                    iterable = translate_expression(expression.args[1])
+                    return f"map {function} over {iterable}"
+
+        if isinstance(expression.func, ast.Attribute):
+            if expression.func.attr == "split":
+                collection = translate_expression(expression.func.value)
+
+                if len(expression.args) == 1:
+                    separator = translate_expression(expression.args[0])
+                    return f"{collection} split by {separator}"
+
+            if expression.func.attr == "join":
+                separator = translate_expression(expression.func.value)
+
+                if len(expression.args) == 1:
+                    iterable = translate_expression(expression.args[0])
+                    return f"{iterable} joined with {separator}"
+
     if isinstance(expression, ast.Subscript):
         collection = translate_expression(expression.value)
+
+        if isinstance(expression.slice, ast.Slice):
+            if expression.slice.lower is not None and expression.slice.upper is None:
+                start = translate_expression(expression.slice.lower)
+                return f"the items in {collection} from index {start} onward"
+
         index = translate_expression(expression.slice)
         return f"the item in {collection} at index ({index})"
 
@@ -140,7 +167,7 @@ def translate_while_statement(statement: ast.While) -> str:
     if not isinstance(statement.test, ast.Compare):
         return "Unsupported while condition."
 
-    condition = translate_comparison(statement.test)
+    condition = translate_condition(statement.test)
     translations: list[str] = [f"While {condition}:"]
 
     for nested_statement in statement.body:
@@ -232,12 +259,36 @@ def translate_comparison(comparison: ast.Compare) -> str:
     return "Unsupported comparison"
 
 
+def translate_condition(condition: ast.expr) -> str:
+    if isinstance(condition, ast.Compare):
+        return translate_comparison(condition)
+
+    if isinstance(condition, ast.BoolOp):
+        if isinstance(condition.op, ast.And):
+            operator = " and "
+        elif isinstance(condition.op, ast.Or):
+            operator = " or "
+        else:
+            return "Unsupported boolean operator"
+
+        translated_values = [
+            translate_condition(value)
+            for value in condition.values
+        ]
+
+        return operator.join(translated_values)
+
+    return "Unsupported condition"
+
+
 def translate_if_statement(statement: ast.If) -> str:
     """Translate a Python if statement into plain English."""
-    if not isinstance(statement.test, ast.Compare):
+    if not isinstance(statement.test, (ast.Compare, ast.BoolOp)):
         return "Unsupported if condition"
 
-    condition = translate_comparison(statement.test)
+    condition = translate_condition(statement.test)
+
+    condition = translate_condition(statement.test)
     translations: list[str] = [f"If {condition}:"]
 
     for nested_statement in statement.body:
