@@ -62,6 +62,12 @@ def translate_expression(expression: ast.expr) -> str:
                     iterable = translate_expression(expression.args[0])
                     return f"{iterable} joined with {separator}"
 
+            if expression.func.attr == "startswith":
+                if len(expression.args) == 1:
+                    value = translate_expression(expression.func.value)
+                    prefix = translate_expression(expression.args[0])
+                    return f"{value} starts with {prefix}"
+
     if isinstance(expression, ast.Subscript):
         collection = translate_expression(expression.value)
 
@@ -83,6 +89,18 @@ def translate_function_call(call: ast.Call) -> str:
             if not call.args and not call.keywords:
                 collection = translate_expression(call.func.value)
                 return f"Sort {collection} in place."
+
+        if call.func.attr == "join":
+            if len(call.args) == 1:
+                separator = translate_expression(call.func.value)
+                iterable = translate_expression(call.args[0])
+                return f"Join {iterable} with {separator}."
+
+        if call.func.attr == "startswith":
+            if len(call.args) == 1:
+                value = translate_expression(call.func.value)
+                prefix = translate_expression(call.args[0])
+                return f"Check whether {value} starts with {prefix}."
 
     function_name = ast.unparse(call.func)
 
@@ -198,24 +216,47 @@ def translate_augmented_assignment(statement: ast.AugAssign) -> str:
         return f"Raise {target} to the power of {value}."
 
     return "Unsupported augmented assignment."
+
+
+def translate_annotated_assignment(statement: ast.AnnAssign) -> str:
+    """Translate an annotated Python assignment into plain English."""
+    target = ast.unparse(statement.target)
+
+    if statement.value is None:
+        annotation = ast.unparse(statement.annotation)
+        return f"Declare {target} as {annotation}."
+
+    value = translate_expression(statement.value)
+
+    return f"Set {target} equal to {value}."
         
 
 def translate_statement(statement: ast.stmt) -> str:
     """Translate one Python statement into plain English."""
     if isinstance(statement, ast.Assign):
         return translate_assignment(statement)
+
+    if isinstance(statement, ast.AnnAssign):
+        return translate_annotated_assignment(statement)
+
     if isinstance(statement, ast.FunctionDef):
         return translate_function_definition(statement)
+
     if isinstance(statement, ast.If):
         return translate_if_statement(statement)
+
     if isinstance(statement, ast.For):
         return translate_for_statement(statement)
+
     if isinstance(statement, ast.While):
         return translate_while_statement(statement)
+
     if isinstance(statement, ast.AugAssign):
         return translate_augmented_assignment(statement)
+
     if isinstance(statement, ast.Return):
         return translate_return_statement(statement)
+
     if isinstance(statement, ast.Expr):
         call = statement.value
 
@@ -263,6 +304,9 @@ def translate_condition(condition: ast.expr) -> str:
     if isinstance(condition, ast.Compare):
         return translate_comparison(condition)
 
+    if isinstance(condition, ast.Call):
+        return translate_expression(condition)
+
     if isinstance(condition, ast.BoolOp):
         if isinstance(condition.op, ast.And):
             operator = " and "
@@ -283,7 +327,10 @@ def translate_condition(condition: ast.expr) -> str:
 
 def translate_if_statement(statement: ast.If) -> str:
     """Translate a Python if statement into plain English."""
-    if not isinstance(statement.test, (ast.Compare, ast.BoolOp)):
+    if not isinstance(
+        statement.test,
+        (ast.Compare, ast.BoolOp, ast.Call),
+    ):
         return "Unsupported if condition"
 
     condition = translate_condition(statement.test)
