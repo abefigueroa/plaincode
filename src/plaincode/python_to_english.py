@@ -82,6 +82,13 @@ def translate_expression(expression: ast.expr) -> str:
 
                     return f"filter {iterable} using {function}"
 
+            if expression.func.id == "reduce":
+                if len(expression.args) == 2:
+                    function = translate_expression(expression.args[0])
+                    iterable = translate_expression(expression.args[1])
+
+                    return f"reduce {iterable} using {function}"
+
             if expression.func.id == "list":
                 if len(expression.args) == 1:
                     iterable = translate_expression(
@@ -163,6 +170,26 @@ def translate_function_call(call: ast.Call) -> str:
         )
 
     return translation
+
+
+def translate_import_from(statement: ast.ImportFrom) -> str:
+    """Translate a Python from-import statement into plain English."""
+    module = statement.module
+
+    names = [
+        alias.name
+        for alias in statement.names
+    ]
+
+    if len(names) == 1:
+        return f"Import {names[0]} from {module}."
+
+    leading_names = ", ".join(names[:-1])
+
+    return (
+        f"Import {leading_names} and {names[-1]} "
+        f"from {module}."
+    )
 
 
 def translate_assignment(statement: ast.Assign) -> str:
@@ -275,6 +302,9 @@ def translate_annotated_assignment(statement: ast.AnnAssign) -> str:
 
 def translate_statement(statement: ast.stmt) -> str:
     """Translate one Python statement into plain English."""
+    if isinstance(statement, ast.ImportFrom):
+        return translate_import_from(statement)
+    
     if isinstance(statement, ast.Assign):
         return translate_assignment(statement)
 
