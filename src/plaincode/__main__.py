@@ -124,9 +124,16 @@ def main() -> None:
                     )
 
                     if confirmation.lower() == "y":
-                        translations.append(
-                            translate_english(guess)
-                        )
+                        try:
+                            translations.append(
+                                translate_english(guess)
+                            )
+                        except UnsupportedEnglishError as error:
+                            print(
+                                f"PlainCode could not translate "
+                                f"that interpretation: {error}"
+                            )
+                            break
                     else:
                         print(
                             "Please try entering your English again."
