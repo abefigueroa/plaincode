@@ -112,6 +112,7 @@ def count_name_uses(node: ast.AST, name: str) -> int:
         )
     )
 
+
 class NameReplacer(ast.NodeTransformer):
     """Replace one variable reference with an expression."""
 
@@ -147,20 +148,33 @@ def replace_name(
 
 def is_simple_assignment(statement: ast.stmt) -> bool:
     """Check whether a statement assigns to one simple variable."""
-    return (
-        isinstance(statement, ast.Assign)
-        and len(statement.targets) == 1
-        and isinstance(statement.targets[0], ast.Name)
-    )
+    if isinstance(statement, ast.Assign):
+        return (
+            len(statement.targets) == 1
+            and isinstance(statement.targets[0], ast.Name)
+        )
 
-def assignment_target(statement: ast.Assign) -> str:
-    """Return the variable name targeted by an assignment."""
-    target = statement.targets[0]
+    if isinstance(statement, ast.AnnAssign):
+        return (
+            isinstance(statement.target, ast.Name)
+            and statement.value is not None
+        )
+
+    return False
+
+def assignment_target(
+    assignment: ast.Assign | ast.AnnAssign,
+) -> str:
+    if isinstance(assignment, ast.Assign):
+        target = assignment.targets[0]
+    else:
+        target = assignment.target
 
     if not isinstance(target, ast.Name):
-        raise ValueError("Expected a simple variable assignment.")
+        raise ValueError("Expected a simple name assignment.")
 
     return target.id
+
 
 class CombineTransformer(ast.NodeTransformer):
     """Combine intermediate assignment chains into nested expressions."""
@@ -175,7 +189,10 @@ class CombineTransformer(ast.NodeTransformer):
             if is_simple_assignment(statement):
                 assignment = statement
 
-                if not isinstance(assignment, ast.Assign):
+                if not isinstance(
+                    assignment,
+                    (ast.Assign, ast.AnnAssign),
+                ):
                     continue
 
                 name = assignment_target(assignment)
@@ -191,18 +208,43 @@ class CombineTransformer(ast.NodeTransformer):
 
             if (
                 not isinstance(statement, ast.Return)
-                or not isinstance(statement.value, ast.Name)
+                or statement.value is None
             ):
                 index += 1
                 continue
 
-            returned_name = statement.value.id
+            previous_index = index - 1
+
+            if previous_index < 0:
+                index += 1
+                continue
+
+            previous_statement = body[previous_index]
+
+            if not is_simple_assignment(previous_statement):
+                index += 1
+                continue
+
+            if not isinstance(
+                previous_statement,
+                (ast.Assign, ast.AnnAssign),
+            ):
+                index += 1
+                continue
+
+            returned_name = assignment_target(previous_statement)
+
+            if count_name_uses(
+                statement.value,
+                returned_name,
+            ) != 1:
+                index += 1
+                continue
+
             current_name = returned_name
 
-            chain: list[ast.Assign] = []
+            chain: list[ast.Assign | ast.AnnAssign] = []
             chain_start = index
-
-            previous_index = index - 1
 
             while previous_index >= 0:
                 previous_statement = body[previous_index]
@@ -210,7 +252,10 @@ class CombineTransformer(ast.NodeTransformer):
                 if not is_simple_assignment(previous_statement):
                     break
 
-                if not isinstance(previous_statement, ast.Assign):
+                if not isinstance(
+                    previous_statement,
+                    (ast.Assign, ast.AnnAssign),
+                ):
                     break
 
                 target_name = assignment_target(
@@ -236,7 +281,10 @@ class CombineTransformer(ast.NodeTransformer):
                 if not is_simple_assignment(earlier_statement):
                     break
 
-                if not isinstance(earlier_statement, ast.Assign):
+                if not isinstance(
+                    earlier_statement,
+                    (ast.Assign, ast.AnnAssign),
+                ):
                     break
 
                 earlier_name = assignment_target(
@@ -288,7 +336,11 @@ class CombineTransformer(ast.NodeTransformer):
                 current_name = assignment_target(assignment)
 
             combined_return = ast.Return(
-                value=expression,
+                value=replace_name(
+                    statement.value,
+                    returned_name,
+                    expression,
+                ),
             )
 
             body[chain_start:index + 1] = [
