@@ -59,12 +59,39 @@ class BreakApartTransformer(ast.NodeTransformer):
             ctx=ast.Load(),
         )
 
+    def break_apart_expression(
+        self,
+        expression: ast.expr,
+        assignments: list[ast.stmt],
+    ) -> ast.expr:
+        """Break function calls out of a larger expression."""
+        if isinstance(expression, ast.Call):
+            return self.break_apart_call(
+                expression,
+                assignments,
+            )
+
+        if isinstance(expression, ast.BinOp):
+            return ast.BinOp(
+                left=self.break_apart_expression(
+                    expression.left,
+                    assignments,
+                ),
+                op=expression.op,
+                right=self.break_apart_expression(
+                    expression.right,
+                    assignments,
+                ),
+            )
+
+        return expression
+
     def visit_Return(
         self,
         node: ast.Return,
     ) -> ast.Return | list[ast.stmt]:
-        """Break apart nested calls inside a return statement."""
-        if not isinstance(node.value, ast.Call):
+        """Break apart function calls inside a return expression."""
+        if node.value is None:
             return node
 
         calls = [
@@ -73,12 +100,18 @@ class BreakApartTransformer(ast.NodeTransformer):
             if isinstance(child, ast.Call)
         ]
 
-        if len(calls) < 2:
+        if not calls:
+            return node
+
+        if (
+            isinstance(node.value, ast.Call)
+            and len(calls) < 2
+        ):
             return node
 
         assignments: list[ast.stmt] = []
 
-        result = self.break_apart_call(
+        result = self.break_apart_expression(
             node.value,
             assignments,
         )
