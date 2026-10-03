@@ -30,6 +30,11 @@ def translate_expression(expression: ast.expr) -> str:
         if isinstance(expression.op, ast.Pow):
             return f"{left} raised to the power of {right}"
 
+    if isinstance(expression, ast.UnaryOp):
+        if isinstance(expression.op, ast.Not):
+            operand = translate_expression(expression.operand)
+            return f"it is not true that ({operand})"    
+
     if isinstance(expression, ast.Lambda):
         parameters = [
             argument.arg
@@ -102,6 +107,16 @@ def translate_expression(expression: ast.expr) -> str:
                     )
                     return f"a list made from {iterable}"
 
+            if expression.func.id == "tuple":
+                if len(expression.args) == 1 and not expression.keywords:
+                    iterable = translate_expression(expression.args[0])
+                    return f"a tuple made from {iterable}"
+
+            if expression.func.id == "set":
+                if len(expression.args) == 1 and not expression.keywords:
+                    iterable = translate_expression(expression.args[0])
+                    return f"a set of unique items from {iterable}"
+
         if isinstance(expression.func, ast.Attribute):
             if expression.func.attr == "split":
                 collection = translate_expression(expression.func.value)
@@ -122,6 +137,19 @@ def translate_expression(expression: ast.expr) -> str:
                     value = translate_expression(expression.func.value)
                     prefix = translate_expression(expression.args[0])
                     return f"{value} starts with {prefix}"
+
+            if expression.func.attr == "isdigit":
+                if not expression.args and not expression.keywords:
+                    value = translate_expression(expression.func.value)
+                    return f"{value} is nonempty and contains only digits"
+
+    if isinstance(expression, ast.Attribute):
+        if (
+            isinstance(expression.value, ast.Name)
+            and expression.value.id == "str"
+            and expression.attr == "upper"
+        ):
+            return "the function that converts a string to uppercase"
 
     if isinstance(expression, ast.Subscript):
         collection = translate_expression(expression.value)

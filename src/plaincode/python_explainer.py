@@ -75,6 +75,19 @@ def explain_expression(
 
         if isinstance(expression.func, ast.Name):
             if (
+                expression.func.id == "tuple"
+                and len(expression.args) == 1
+                and not expression.keywords
+            ):
+                previous_steps, value = explain_expression(
+                    expression.args[0]
+                )
+                steps = previous_steps + [
+                    f"Convert {value} into a tuple."
+                ]
+                return steps, "the resulting tuple"
+            
+            if (
                 expression.func.id == "map"
                 and len(expression.args) == 2
             ):
@@ -172,6 +185,13 @@ def explain_python(python_code: str) -> str:
         elif isinstance(statement, ast.Return):
             explanations.extend(
                 explain_return(statement)
+            )
+        elif isinstance(statement, ast.Assign):
+            steps, result = explain_expression(statement.value)
+            explanations.extend(steps)
+            target = ast.unparse(statement.targets[0])
+            explanations.append(
+                f"Set {target} equal to {result}."
             )
         else:
             explanations.append(

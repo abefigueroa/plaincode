@@ -335,7 +335,7 @@ class CombineTransformer(ast.NodeTransformer):
                 combined_return
             ]
 
-            index = chain_start + 1
+            index = chain_start
 
         return body
 
@@ -355,12 +355,73 @@ class CombineTransformer(ast.NodeTransformer):
         node.body = self.combine_body(node.body)
         return node
 
+class IterableSimplifier(ast.NodeTransformer):
+    """Simplify iterable conversions in known pipelines."""
+
+    def visit_Call(self, node: ast.Call) -> ast.expr:
+        self.generic_visit(node)
+
+        if (
+            isinstance(node.func, ast.Name)
+            and node.func.id == "set"
+            and len(node.args) == 1
+            and not node.keywords
+        ):
+            inner = node.args[0]
+
+            if (
+                isinstance(inner, ast.Call)
+                and isinstance(inner.func, ast.Name)
+                and inner.func.id == "list"
+                and len(inner.args) == 1
+                and not inner.keywords
+            ):
+                source = inner.args[0]
+
+                if (
+                    isinstance(source, ast.Call)
+                    and isinstance(source.func, ast.Name)
+                    and source.func.id == "filter"
+                    and len(source.args) == 2
+                    and not source.keywords
+                ):
+                    node.args[0] = source
+
+        if (
+            isinstance(node.func, ast.Name)
+            and node.func.id == "filter"
+            and len(node.args) == 2
+            and not node.keywords
+        ):
+            inner = node.args[1]
+
+            if (
+                isinstance(inner, ast.Call)
+                and isinstance(inner.func, ast.Name)
+                and inner.func.id == "tuple"
+                and len(inner.args) == 1
+                and not inner.keywords
+            ):
+                source = inner.args[0]
+
+                if (
+                    isinstance(source, ast.Call)
+                    and isinstance(source.func, ast.Name)
+                    and source.func.id == "map"
+                    and len(source.args) == 2
+                    and not source.keywords
+                ):
+                    node.args[1] = source
+
+        return node
+
 def combine_python(python_code: str) -> str:
     """Combine intermediate Python steps into nested expressions."""
     tree = ast.parse(python_code)
 
     transformer = CombineTransformer()
     transformed_tree = transformer.visit(tree)
+    transformed_tree = IterableSimplifier().visit(transformed_tree)
 
     ast.fix_missing_locations(transformed_tree)
 
