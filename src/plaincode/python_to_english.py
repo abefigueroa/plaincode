@@ -71,6 +71,12 @@ def translate_expression(expression: ast.expr) -> str:
                     iterable = translate_expression(expression.args[1])
                     return f"map {function} over {iterable}"
 
+            if expression.func.id == "zip":
+                if len(expression.args) == 2 and not expression.keywords:
+                    first = translate_expression(expression.args[0])
+                    second = translate_expression(expression.args[1])
+                    return f"items from {first} and {second} paired by position"
+            
             if expression.func.id == "filter":
                 if len(expression.args) == 2:
                     function = translate_expression(

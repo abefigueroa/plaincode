@@ -303,52 +303,7 @@ class CombineTransformer(ast.NodeTransformer):
 
                 chain.append(previous_statement)
                 chain_start = previous_index
-
-                earlier_index = previous_index - 1
-
-                if earlier_index < 0:
-                    break
-
-                earlier_statement = body[earlier_index]
-
-                if not is_simple_assignment(earlier_statement):
-                    break
-
-                if not isinstance(
-                    earlier_statement,
-                    (ast.Assign, ast.AnnAssign),
-                ):
-                    break
-
-                earlier_name = assignment_target(
-                    earlier_statement
-                )
-
-                if count_name_uses(
-                    previous_statement.value,
-                    earlier_name,
-                ) != 1:
-                    break
-
-                if not isinstance(
-                    previous_statement.value,
-                    ast.Call,
-                ):
-                    break
-
-                nested_calls = [
-                    child
-                    for child in ast.walk(
-                        previous_statement.value
-                    )
-                    if isinstance(child, ast.Call)
-                ]
-
-                if len(nested_calls) != 1:
-                    break
-
-                current_name = earlier_name
-                previous_index -= 1
+                break
 
             if not chain:
                 index += 1
