@@ -402,6 +402,8 @@ def translate_comparison(comparison: ast.Compare) -> str:
         return f"{left} is equal to {right}"
     if isinstance(operator, ast.NotEq):
         return f"{left} is not equal to {right}"
+    if isinstance(operator, ast.NotIn):
+        return f"{left} is not in {right}"
     
     return "Unsupported comparison"
 
